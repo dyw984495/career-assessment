@@ -1,0 +1,12 @@
+# Edge Functions：网关 verify_jwt 关闭后，在函数内自行校验（学生用 token 业务校验；create-task 用 auth.getUser）。
+# 修改后需重新 deploy：supabase functions deploy <name>
+
+[functions.validate-token]
+verify_jwt = false
+
+[functions.submit-assessment]
+verify_jwt = false
+
+# 网关不校验 JWT（publishable key 等场景），在函数内用 auth.getUser 校验管理员
+[functions.create-task]
+verify_jwt = false
