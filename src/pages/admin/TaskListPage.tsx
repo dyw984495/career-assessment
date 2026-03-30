@@ -20,7 +20,13 @@ export default function TaskListPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // 创建任务表单
-  const [form, setForm] = useState({ student_name: '', student_phone: '', source: '', expires_days: '7' })
+  const [form, setForm] = useState({
+    student_name: '',
+    student_phone: '',
+    source: '',
+    institution_name: '',
+    expires_days: '7',
+  })
 
   const baseUrl = getAppBaseUrl()
 
@@ -77,6 +83,7 @@ export default function TaskListPage() {
           student_name: form.student_name || null,
           student_phone: form.student_phone || null,
           source: form.source || null,
+          institution_name: form.institution_name || null,
           expires_at: expiresAt,
         }),
       })
@@ -97,7 +104,7 @@ export default function TaskListPage() {
       }
 
       setShowCreateModal(false)
-      setForm({ student_name: '', student_phone: '', source: '', expires_days: '7' })
+      setForm({ student_name: '', student_phone: '', source: '', institution_name: '', expires_days: '7' })
       fetchTasks()
     } catch (err) {
       console.error(err)
@@ -324,6 +331,16 @@ export default function TaskListPage() {
                   value={form.source}
                   onChange={e => setForm(f => ({ ...f, source: e.target.value }))}
                   placeholder="例如：2024秋招 / XX课程"
+                  className="w-full h-11 rounded-2xl border border-gray-200 px-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">机构名（可选）</label>
+                <input
+                  type="text"
+                  value={form.institution_name}
+                  onChange={e => setForm(f => ({ ...f, institution_name: e.target.value }))}
+                  placeholder="如：XX 教育机构（仅后台可见，不出现在报告中）"
                   className="w-full h-11 rounded-2xl border border-gray-200 px-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900"
                 />
               </div>

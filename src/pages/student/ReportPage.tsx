@@ -1,16 +1,20 @@
 // ============================================================
 // 学生报告页面 - /report/:submissionId（公开访问，供学生查看，不含管理功能）
+// 通过 RPC get_public_report 读取 report_json，避免 anon 无法 select submissions
 // ============================================================
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { ReportView } from '../../components/ReportView'
-import type { AssessmentSubmission } from '../../lib/types'
+import type { AssessmentReport } from '../../lib/types'
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export default function ReportPage() {
   const { submissionId } = useParams<{ submissionId: string }>()
-  const [submission, setSubmission] = useState<AssessmentSubmission | null>(null)
+  const [report, setReport] = useState<AssessmentReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -20,29 +24,36 @@ export default function ReportPage() {
       setLoading(false)
       return
     }
-    fetchSubmission(submissionId)
+    if (!UUID_RE.test(submissionId)) {
+      setError('无效的报告链接')
+      setLoading(false)
+      return
+    }
+    fetchReport(submissionId)
   }, [submissionId])
 
-  async function fetchSubmission(id: string) {
+  async function fetchReport(id: string) {
     setLoading(true)
     setError(null)
     try {
-      const { data, error: dbError } = await supabase
-        .from('assessment_submissions')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle()
+      const { data, error: rpcError } = await supabase.rpc('get_public_report', {
+        p_submission_id: id,
+      })
 
-      if (dbError) {
-        console.error('加载报告失败:', dbError)
-        setError('加载报告失败，请稍后重试')
+      if (rpcError) {
+        console.error('加载报告失败:', rpcError)
+        setError(
+          rpcError.message?.includes('function') && rpcError.message?.includes('does not exist')
+            ? '报告服务未就绪，请联系管理员在数据库中部署 get_public_report'
+            : '加载报告失败，请稍后重试',
+        )
         return
       }
-      if (!data) {
+      if (data == null || typeof data !== 'object' || Array.isArray(data)) {
         setError('未找到该报告')
         return
       }
-      setSubmission(data as unknown as AssessmentSubmission)
+      setReport(data as AssessmentReport)
     } catch {
       setError('加载报告失败，请稍后重试')
     } finally {
@@ -61,7 +72,7 @@ export default function ReportPage() {
     )
   }
 
-  if (error || !submission) {
+  if (error || !report) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -80,7 +91,7 @@ export default function ReportPage() {
         <span>📋 你的专属职业规划测评报告 · 建议横屏查看或截图保存</span>
       </div>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
-        <ReportView report={submission.report_json} />
+        <ReportView report={report} />
       </div>
     </div>
   )

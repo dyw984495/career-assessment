@@ -12,6 +12,7 @@ create table if not exists public.assessment_tasks (
   student_name text,
   student_phone text,
   source text,
+  institution_name text,
   status text not null default 'pending' check (status in ('pending', 'started', 'submitted', 'expired')),
   expires_at timestamptz,
   submitted_at timestamptz,

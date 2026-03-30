@@ -72,6 +72,8 @@ export interface AssessmentTask {
   student_name: string | null
   student_phone: string | null
   source: string | null
+  /** 管理端记录，不写入学生报告（旧库未迁移时可能无此字段） */
+  institution_name?: string | null
   status: TaskStatus
   expires_at: string | null
   submitted_at: string | null

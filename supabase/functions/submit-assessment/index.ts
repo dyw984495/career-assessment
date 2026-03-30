@@ -339,7 +339,7 @@ function recommend(interest: InterestScores, personality: PersonalityScores, pro
       ],
     }))
     .sort((a, b) => b.score - a.score)
-    .slice(0, 6)
+    .slice(0, 3)
 }
 
 // ---------- HTTP Handler ----------

@@ -192,6 +192,10 @@ export default function TaskDetailPage() {
                 <div className="font-semibold text-gray-900">{task.source || '-'}</div>
               </div>
               <div>
+                <div className="text-xs text-gray-500 mb-1">机构名</div>
+                <div className="font-semibold text-gray-900">{task.institution_name || '-'}</div>
+              </div>
+              <div>
                 <div className="text-xs text-gray-500 mb-1">状态</div>
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
                   {getStatusLabel(task.status)}

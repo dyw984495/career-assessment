@@ -59,7 +59,7 @@ serve(async (req) => {
       })
     }
 
-    const { student_name, student_phone, source, expires_at } = await req.json()
+    const { student_name, student_phone, source, institution_name, expires_at } = await req.json()
 
     // 生成唯一 token
     const token = generateToken()
@@ -72,6 +72,7 @@ serve(async (req) => {
         student_name: student_name || null,
         student_phone: student_phone || null,
         source: source || null,
+        institution_name: institution_name || null,
         status: 'pending',
         expires_at: expires_at || null,
       })

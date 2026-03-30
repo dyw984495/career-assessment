@@ -12,6 +12,7 @@ import {
   personalityTypeExplain,
 } from '../assessment/questions'
 import { getTaskNote } from '../assessment/roles'
+import { getInternshipAdvice } from '../assessment/report'
 
 /** 报告末尾附带的求职时间线参考图（置于 public/report-timeline/） */
 const REPORT_TIMELINE_IMAGES = [
@@ -76,9 +77,20 @@ function taskDetailLine(task: string) {
   )
 }
 
+const INTEREST_KEYS: InterestKey[] = ['R', 'I', 'A', 'S', 'E', 'C']
+const PERSONALITY_KEYS: PersonalityKey[] = [
+  'openness',
+  'conscientiousness',
+  'extraversion',
+  'agreeableness',
+  'stability',
+]
+
 export function ReportView({ report }: ReportViewProps) {
   const { student, profile, interest, personality, interestResult, personalityResult, selectedRoles, tips } = report
   const createdStr = new Date(report.createdAt).toLocaleString('zh-CN')
+  const interestOrder = [...INTEREST_KEYS].sort((a, b) => interest[b] - interest[a])
+  const personalityOrder = [...PERSONALITY_KEYS].sort((a, b) => personality[b] - personality[a])
 
   return (
     <div className="space-y-6" data-report-pdf-root>
@@ -152,7 +164,7 @@ export function ReportView({ report }: ReportViewProps) {
               </tr>
             </thead>
             <tbody>
-              {(['R', 'I', 'A', 'S', 'E', 'C'] as InterestKey[]).map(key => (
+              {interestOrder.map(key => (
                 <tr key={key} className="border-b border-gray-100 last:border-b-0">
                   <td className="py-2 pr-3 font-medium text-gray-800 align-middle">{interestLabels[key]}</td>
                   <td className="py-2 pr-3 font-bold text-gray-900 align-middle tabular-nums">{interest[key]}</td>
@@ -164,7 +176,7 @@ export function ReportView({ report }: ReportViewProps) {
             </tbody>
           </table>
           <p className="text-xs mt-3 leading-relaxed" style={{ color: '#6b7280' }}>
-            「得分」为量表原始分（约 18–92）；「相对强度」已将各维度映射到 0–100 便于对比。
+            「得分」为量表原始分（约 18–92）；「相对强度」已将各维度映射到 0–100 便于对比。表中各维度按得分从高到低排列。
           </p>
 
           <div className="mt-6 pt-6 border-t border-gray-100">
@@ -173,7 +185,7 @@ export function ReportView({ report }: ReportViewProps) {
               下面对 RIASEC 六种兴趣类型分别说明职业含义；卡片中的高低分提示结合你的相对强度（以 50 为参考中位）给出。
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(['R', 'I', 'A', 'S', 'E', 'C'] as InterestKey[]).map(key => {
+              {interestOrder.map(key => {
                 const pct = interestToPercent(interest[key])
                 const hi = pct >= 50
                 return (
@@ -216,21 +228,19 @@ export function ReportView({ report }: ReportViewProps) {
               </tr>
             </thead>
             <tbody>
-              {(['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'stability'] as PersonalityKey[]).map(
-                key => (
-                  <tr key={key} className="border-b border-gray-100 last:border-b-0">
-                    <td className="py-2 pr-3 font-medium text-gray-800 align-middle">{personalityLabels[key]}</td>
-                    <td className="py-2 pr-3 font-bold text-gray-900 align-middle tabular-nums">{personality[key]}</td>
-                    <td className="py-2 align-middle">
-                      <IntensityBar value0to100={personality[key]} fill="#3b82f6" />
-                    </td>
-                  </tr>
-                ),
-              )}
+              {personalityOrder.map(key => (
+                <tr key={key} className="border-b border-gray-100 last:border-b-0">
+                  <td className="py-2 pr-3 font-medium text-gray-800 align-middle">{personalityLabels[key]}</td>
+                  <td className="py-2 pr-3 font-bold text-gray-900 align-middle tabular-nums">{personality[key]}</td>
+                  <td className="py-2 align-middle">
+                    <IntensityBar value0to100={personality[key]} fill="#3b82f6" />
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <p className="text-xs mt-3 leading-relaxed" style={{ color: '#6b7280' }}>
-            「得分」为 0–100 量表分；条形与右侧数字为同尺度下的相对强度。
+            「得分」为 0–100 量表分；条形与右侧数字为同尺度下的相对强度。表中各维度按得分从高到低排列。
           </p>
 
           <div className="mt-6 pt-6 border-t border-gray-100">
@@ -239,24 +249,22 @@ export function ReportView({ report }: ReportViewProps) {
               下面对 IPIP 五大人格维度分别说明在工作中的典型表现；高低分提示以 50 分为参考中位。
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'stability'] as PersonalityKey[]).map(
-                key => {
-                  const pct = personality[key]
-                  const hi = pct >= 50
-                  return (
-                    <div key={key} className="rounded-xl border border-gray-100 bg-gray-50/90 p-4">
-                      <div className="flex items-baseline justify-between gap-2 mb-2">
-                        <span className="font-bold text-gray-900">{personalityLabels[key]}</span>
-                        <span className="text-xs text-gray-500 tabular-nums shrink-0">得分 {pct}</span>
-                      </div>
-                      <p className="text-xs text-gray-600 mb-2 leading-relaxed">
-                        {hi ? personalityNotes[key].hi : personalityNotes[key].lo}
-                      </p>
-                      <p className="text-xs text-gray-600 leading-relaxed">{personalityTypeExplain[key]}</p>
+              {personalityOrder.map(key => {
+                const pct = personality[key]
+                const hi = pct >= 50
+                return (
+                  <div key={key} className="rounded-xl border border-gray-100 bg-gray-50/90 p-4">
+                    <div className="flex items-baseline justify-between gap-2 mb-2">
+                      <span className="font-bold text-gray-900">{personalityLabels[key]}</span>
+                      <span className="text-xs text-gray-500 tabular-nums shrink-0">得分 {pct}</span>
                     </div>
-                  )
-                },
-              )}
+                    <p className="text-xs text-gray-600 mb-2 leading-relaxed">
+                      {hi ? personalityNotes[key].hi : personalityNotes[key].lo}
+                    </p>
+                    <p className="text-xs text-gray-600 leading-relaxed">{personalityTypeExplain[key]}</p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -279,25 +287,27 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </div>
 
-      {/* Top 6 岗位匹配度 */}
+      {/* Top 3 岗位匹配度 */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="font-bold text-gray-900">推荐岗位 Top 6</h3>
+          <h3 className="font-bold text-gray-900">推荐岗位 Top 3</h3>
           <p className="text-sm text-gray-500 mt-1">按综合匹配度排序</p>
         </div>
         <div className="px-5 py-4 overflow-x-auto">
-          <table className="w-full text-sm border-collapse min-w-[320px]">
+          <table className="w-full text-sm border-collapse min-w-[520px]">
             <thead>
               <tr className="border-b border-gray-200 text-left text-gray-500">
                 <th className="py-2 pr-2 font-medium w-10">#</th>
                 <th className="py-2 pr-2 font-medium w-10 text-gray-400">图标</th>
                 <th className="py-2 pr-3 font-medium">岗位</th>
                 <th className="py-2 pr-3 font-medium w-16">匹配度</th>
+                <th className="py-2 pr-3 font-medium min-w-[6rem]">代表机构</th>
+                <th className="py-2 pr-3 font-medium min-w-[7rem]">实习建议</th>
                 <th className="py-2 font-medium min-w-[7rem]">条形</th>
               </tr>
             </thead>
             <tbody>
-              {selectedRoles.slice(0, 6).map((role, idx) => (
+              {selectedRoles.slice(0, 3).map((role, idx) => (
                 <tr key={role.name} className="border-b border-gray-100 last:border-b-0">
                   <td className="py-2 pr-2 font-black text-gray-300 tabular-nums align-middle">{idx + 1}</td>
                   <td className="py-2 pr-2 text-lg align-middle" aria-hidden>
@@ -305,6 +315,12 @@ export function ReportView({ report }: ReportViewProps) {
                   </td>
                   <td className="py-2 pr-3 font-semibold text-gray-900 align-middle">{role.name}</td>
                   <td className="py-2 pr-3 font-bold text-gray-900 tabular-nums align-middle">{role.score}%</td>
+                  <td className="py-2 pr-3 text-xs text-gray-600 align-middle max-w-[10rem]">
+                    {role.companies?.length ? role.companies.join('、') : '—'}
+                  </td>
+                  <td className="py-2 pr-3 text-xs text-gray-600 align-middle whitespace-nowrap">
+                    {getInternshipAdvice(role.name)}
+                  </td>
                   <td className="py-2 align-middle">
                     <IntensityBar value0to100={role.score} fill="#111827" />
                   </td>
@@ -426,6 +442,19 @@ export function ReportView({ report }: ReportViewProps) {
                 <div>
                   <h4 className="font-semibold text-gray-700 text-sm mb-2">推荐行业</h4>
                   <p className="text-xs text-gray-600">{role.industries.join('、')}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-gray-700 text-sm mb-2">代表机构 / 企业</h4>
+                  <p className="text-xs text-gray-600">
+                    {role.companies?.length ? role.companies.join('、') : '—'}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-700 text-sm mb-2">实习积累建议</h4>
+                  <p className="text-xs text-gray-600">{getInternshipAdvice(role.name)}</p>
                 </div>
               </div>
             </div>
