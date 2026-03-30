@@ -1,4 +1,6 @@
 # Cloudflare Workers 静态资源 + React Router（SPA）
+# 未匹配到静态文件时回退 index.html，避免 /admin/login 等深链打开空白
+# 文档：https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/
 name = "career-assessment"
 compatibility_date = "2025-04-01"
 
