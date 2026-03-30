@@ -39,6 +39,8 @@ export interface Role {
   salary: string[]
   industries: string[]
   companies: string[]
+  /** 校招门槛-实习经历要求（岗位库.xlsx）；历史报告 JSON 可能无此字段 */
+  internshipRequirement?: string
 }
 
 // 推荐岗位（含匹配分和推荐理由）

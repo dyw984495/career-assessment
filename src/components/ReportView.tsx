@@ -2,7 +2,7 @@
 // 报告展示组件 - 用于管理端查看完整报告
 // ============================================================
 
-import type { AssessmentReport, InterestKey, PersonalityKey } from '../lib/types'
+import type { AssessmentReport, InterestKey, PersonalityKey, RecommendedRole } from '../lib/types'
 import {
   interestLabels,
   interestNotes,
@@ -11,7 +11,7 @@ import {
   personalityNotes,
   personalityTypeExplain,
 } from '../assessment/questions'
-import { getTaskNote } from '../assessment/roles'
+import { getTaskNote, INTERNSHIP_REQUIREMENTS } from '../assessment/roles'
 import { getInternshipAdvice } from '../assessment/report'
 
 /** 报告末尾附带的求职时间线参考图（置于 public/report-timeline/） */
@@ -75,6 +75,14 @@ function taskDetailLine(task: string) {
       <span className="text-gray-600">：{getTaskNote(task)}</span>
     </li>
   )
+}
+
+/** 实习经历要求：优先报告内嵌字段，否则按岗位名对齐岗位库.xlsx，最后兼容旧版短句 */
+function internshipDisplayText(role: RecommendedRole): string {
+  if (role.internshipRequirement) return role.internshipRequirement
+  const fromExcel = INTERNSHIP_REQUIREMENTS[role.name]
+  if (fromExcel) return fromExcel
+  return getInternshipAdvice(role.name)
 }
 
 const INTEREST_KEYS: InterestKey[] = ['R', 'I', 'A', 'S', 'E', 'C']
@@ -302,7 +310,7 @@ export function ReportView({ report }: ReportViewProps) {
                 <th className="py-2 pr-3 font-medium">岗位</th>
                 <th className="py-2 pr-3 font-medium w-16">匹配度</th>
                 <th className="py-2 pr-3 font-medium min-w-[6rem]">代表机构</th>
-                <th className="py-2 pr-3 font-medium min-w-[7rem]">实习建议</th>
+                <th className="py-2 pr-3 font-medium min-w-[10rem] max-w-[18rem]">实习经历要求</th>
                 <th className="py-2 font-medium min-w-[7rem]">条形</th>
               </tr>
             </thead>
@@ -318,8 +326,8 @@ export function ReportView({ report }: ReportViewProps) {
                   <td className="py-2 pr-3 text-xs text-gray-600 align-middle max-w-[10rem]">
                     {role.companies?.length ? role.companies.join('、') : '—'}
                   </td>
-                  <td className="py-2 pr-3 text-xs text-gray-600 align-middle whitespace-nowrap">
-                    {getInternshipAdvice(role.name)}
+                  <td className="py-2 pr-3 text-xs text-gray-600 align-top max-w-[18rem] leading-relaxed">
+                    {internshipDisplayText(role)}
                   </td>
                   <td className="py-2 align-middle">
                     <IntensityBar value0to100={role.score} fill="#111827" />
@@ -334,39 +342,7 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </div>
 
-      {/* Top 3 典型任务：与原版报告一致的三列对照 */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="font-bold text-gray-900">典型任务</h3>
-          <p className="text-sm text-gray-500 mt-1">
-            以下仅对综合匹配度最高的 3 个岗位，列出日常工作中的典型任务及具体说明。
-          </p>
-        </div>
-        <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {selectedRoles.slice(0, 3).map((role, idx) => (
-              <div
-                key={role.name}
-                className="rounded-xl border border-gray-200 p-4 bg-gray-50/60"
-                style={{ boxSizing: 'border-box' }}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl shrink-0" aria-hidden>
-                    {role.icon}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="font-bold text-gray-900 text-sm">
-                      Top {idx + 1} · {role.name}
-                    </div>
-                    <div className="text-xs text-gray-500">综合匹配度 {role.score}%</div>
-                  </div>
-                </div>
-                <ul className="space-y-2.5 list-none m-0 p-0">{role.tasks.map(task => taskDetailLine(task))}</ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* 典型任务仅在「推荐岗位详情」中展示，避免与上方重复 */}
 
       {/* 每个岗位单独一节 PDF，避免长图纵向裁切把同一张卡片隔断 */}
       {selectedRoles.slice(0, 3).map((role, idx) => (
@@ -454,7 +430,7 @@ export function ReportView({ report }: ReportViewProps) {
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-700 text-sm mb-2">实习积累建议</h4>
-                  <p className="text-xs text-gray-600">{getInternshipAdvice(role.name)}</p>
+                  <p className="text-xs text-gray-600 leading-relaxed">{internshipDisplayText(role)}</p>
                 </div>
               </div>
             </div>
