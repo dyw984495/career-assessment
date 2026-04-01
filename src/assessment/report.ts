@@ -59,23 +59,64 @@ function majorReason(roleName: string, profile: MajorProfile): string {
 }
 
 // 岗位推荐函数
+// 权重体系：兴趣模型 40% + 性格模型 30% + 专业相关性 30%
+// 两层过滤：
+//   - 若学生有 direct 匹配岗位：仅在 direct + adjacent 中产生 Top3
+//   - 若无 direct 匹配（未填专业 or 无命中）：才看全岗位
+// 距离分数对每个学生单独标准化到 [0,1]，消除 RIASEC/IPIP 量表差异
 export function recommend(interest: InterestScores, personality: PersonalityScores, profile: MajorProfile): RecommendedRole[] {
-  return roles
-    .map((role) => ({
-      ...role,
-      score: Math.round(
-        distance(interest, role.interest) * 0.4 +
-        distance(personality, role.personality) * 0.35 +
-        majorScore(role.name, profile) * 0.25
-      ),
-      why: [
-        { label: '兴趣模型', text: `你的高分兴趣为「${topKeys(interest, 3).map((k) => interestLabels[k]).join('、')}」，该岗位更偏向「${topKeys(role.interest, 3).map((k) => interestLabels[k]).join('、')}」的工作场景。` },
-        { label: '性格模型', text: `你的突出工作风格为「${topKeys(personality, 2).map((k) => personalityLabels[k]).join('、')}」，与该岗位常见要求较接近。` },
-        { label: '专业相关性', text: majorReason(role.name, profile) },
-      ],
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
+  const hasProfile = profile.direct.length > 0 || profile.adjacent.length > 0
+
+  // 对全岗位计算原始分数（保留用于标准化）
+  const rawScores = roles.map((role) => ({
+    role,
+    rawInterest: distance(interest, role.interest),
+    rawPersonality: distance(personality, role.personality),
+    rawMajor: majorScore(role.name, profile),
+  }))
+
+  // 找该学生范围内的最大/最小值（用于 min-max 标准化）
+  const targetPool = hasProfile
+    ? rawScores.filter((r) => profile.direct.includes(r.role.name) || profile.adjacent.includes(r.role.name))
+    : rawScores
+
+  const interestVals = targetPool.map((r) => r.rawInterest)
+  const personalityVals = targetPool.map((r) => r.rawPersonality)
+
+  const minI = Math.min(...interestVals)
+  const maxI = Math.max(...interestVals)
+  const rangeI = maxI - minI || 1
+  const minP = Math.min(...personalityVals)
+  const maxP = Math.max(...personalityVals)
+  const rangeP = maxP - minP || 1
+
+  const scored = rawScores
+    .filter((r) => {
+      if (!hasProfile) return true
+      return profile.direct.includes(r.role.name) || profile.adjacent.includes(r.role.name)
+    })
+    .map(({ role, rawInterest, rawPersonality, rawMajor }) => {
+      // 标准化到 [0, 1]
+      const normInterest = (rawInterest - minI) / rangeI
+      const normPersonality = (rawPersonality - minP) / rangeP
+      const normMajor = rawMajor / 100
+
+      const score = Math.round(
+        normInterest * 40 + normPersonality * 30 + normMajor * 30
+      )
+
+      return {
+        ...role,
+        score,
+        why: [
+          { label: '兴趣模型', text: `你的高分兴趣为「${topKeys(interest, 3).map((k) => interestLabels[k]).join('、')}」，该岗位更偏向「${topKeys(role.interest, 3).map((k) => interestLabels[k]).join('、')}」的工作场景。` },
+          { label: '性格模型', text: `你的突出工作风格为「${topKeys(personality, 2).map((k) => personalityLabels[k]).join('、')}」，与该岗位常见要求较接近。` },
+          { label: '专业相关性', text: majorReason(role.name, profile) },
+        ],
+      }
+    })
+
+  return scored.sort((a, b) => b.score - a.score).slice(0, 3)
 }
 
 // 年级建议
