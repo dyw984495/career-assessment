@@ -62,7 +62,7 @@ function majorReason(roleName: string, profile: MajorProfile): string {
 }
 
 // 岗位推荐函数
-// 权重体系：兴趣模型 30% + 性格模型 30% + 专业相关性 40%（强化专业相关性权重）
+// 权重体系：兴趣模型 20% + 性格模型 20% + 专业相关性 60%（强化专业相关性）
 // 两层过滤：
 //   - 若学生有 direct 匹配岗位：仅在 direct + adjacent 中产生 Top6
 //   - 若无 direct 匹配（未填专业 or 无命中）：才看全岗位
@@ -104,9 +104,9 @@ export function recommend(interest: InterestScores, personality: PersonalityScor
       const normPersonality = (rawPersonality - minP) / rangeP
       const normMajor = rawMajor / 100
 
-      // 强化专业权重：兴趣 30% + 性格 30% + 专业 40%
+      // 强化专业权重：兴趣 20% + 性格 20% + 专业 60%
       const score = Math.round(
-        normInterest * 30 + normPersonality * 30 + normMajor * 40
+        normInterest * 20 + normPersonality * 20 + normMajor * 60
       )
 
       return {

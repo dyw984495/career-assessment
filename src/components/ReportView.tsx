@@ -345,7 +345,8 @@ export function ReportView({ report }: ReportViewProps) {
       {/* 典型任务仅在「推荐岗位详情」中展示，避免与上方重复 */}
 
       {/* 每个岗位单独一节 PDF，避免长图纵向裁切把同一张卡片隔断 */}
-      {selectedRoles.slice(0, 6).map((role, idx) => (
+      {/* 只显示 Top3 岗位详细讲解 */}
+      {selectedRoles.slice(0, 3).map((role, idx) => (
         <div key={role.name} className="space-y-4">
           {idx === 0 ? (
             <h3 className="font-bold text-gray-900 text-lg">推荐岗位详情</h3>
