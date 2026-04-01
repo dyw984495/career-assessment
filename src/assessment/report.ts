@@ -44,11 +44,14 @@ export function personalitySummary(personality: PersonalityScores) {
   }
 }
 
-// 专业相关性评分
+// 专业相关性评分（强化惩罚：专业相关岗位得高分，非相关岗位大幅降分）
 function majorScore(roleName: string, profile: MajorProfile): number {
-  if (profile.direct.includes(roleName)) return 92
-  if (profile.adjacent.includes(roleName)) return 78
-  return profile.direct.length || profile.adjacent.length ? 55 : 70
+  if (profile.direct.includes(roleName)) return 95
+  if (profile.adjacent.includes(roleName)) return 75
+  // 无专业匹配时：非相关岗位惩罚为 30（原为 55），避免跨专业过度推荐
+  if (profile.direct.length > 0 || profile.adjacent.length > 0) return 30
+  // 未填专业时保持中性分数
+  return 70
 }
 
 // 专业相关性理由
@@ -59,9 +62,9 @@ function majorReason(roleName: string, profile: MajorProfile): string {
 }
 
 // 岗位推荐函数
-// 权重体系：兴趣模型 40% + 性格模型 30% + 专业相关性 30%
+// 权重体系：兴趣模型 30% + 性格模型 30% + 专业相关性 40%（强化专业相关性权重）
 // 两层过滤：
-//   - 若学生有 direct 匹配岗位：仅在 direct + adjacent 中产生 Top3
+//   - 若学生有 direct 匹配岗位：仅在 direct + adjacent 中产生 Top6
 //   - 若无 direct 匹配（未填专业 or 无命中）：才看全岗位
 // 距离分数对每个学生单独标准化到 [0,1]，消除 RIASEC/IPIP 量表差异
 export function recommend(interest: InterestScores, personality: PersonalityScores, profile: MajorProfile): RecommendedRole[] {
@@ -101,8 +104,9 @@ export function recommend(interest: InterestScores, personality: PersonalityScor
       const normPersonality = (rawPersonality - minP) / rangeP
       const normMajor = rawMajor / 100
 
+      // 强化专业权重：兴趣 30% + 性格 30% + 专业 40%
       const score = Math.round(
-        normInterest * 40 + normPersonality * 30 + normMajor * 30
+        normInterest * 30 + normPersonality * 30 + normMajor * 40
       )
 
       return {
@@ -116,7 +120,7 @@ export function recommend(interest: InterestScores, personality: PersonalityScor
       }
     })
 
-  return scored.sort((a, b) => b.score - a.score).slice(0, 3)
+  return scored.sort((a, b) => b.score - a.score).slice(0, 6)
 }
 
 // 年级建议

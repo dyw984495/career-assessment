@@ -295,10 +295,10 @@ export function ReportView({ report }: ReportViewProps) {
         </div>
       </div>
 
-      {/* Top 3 岗位匹配度 */}
+      {/* Top 6 岗位匹配度 */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="font-bold text-gray-900">推荐岗位 Top 3</h3>
+          <h3 className="font-bold text-gray-900">推荐岗位 Top 6</h3>
           <p className="text-sm text-gray-500 mt-1">按综合匹配度排序</p>
         </div>
         <div className="px-5 py-4 overflow-x-auto">
@@ -315,7 +315,7 @@ export function ReportView({ report }: ReportViewProps) {
               </tr>
             </thead>
             <tbody>
-              {selectedRoles.slice(0, 3).map((role, idx) => (
+              {selectedRoles.slice(0, 6).map((role, idx) => (
                 <tr key={role.name} className="border-b border-gray-100 last:border-b-0">
                   <td className="py-2 pr-2 font-black text-gray-300 tabular-nums align-middle">{idx + 1}</td>
                   <td className="py-2 pr-2 text-lg align-middle" aria-hidden>
@@ -345,7 +345,7 @@ export function ReportView({ report }: ReportViewProps) {
       {/* 典型任务仅在「推荐岗位详情」中展示，避免与上方重复 */}
 
       {/* 每个岗位单独一节 PDF，避免长图纵向裁切把同一张卡片隔断 */}
-      {selectedRoles.slice(0, 3).map((role, idx) => (
+      {selectedRoles.slice(0, 6).map((role, idx) => (
         <div key={role.name} className="space-y-4">
           {idx === 0 ? (
             <h3 className="font-bold text-gray-900 text-lg">推荐岗位详情</h3>
