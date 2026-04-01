@@ -11,7 +11,7 @@ import {
   personalityNotes,
   personalityTypeExplain,
 } from '../assessment/questions'
-import { getTaskNote, INTERNSHIP_REQUIREMENTS } from '../assessment/roles'
+import { INTERNSHIP_REQUIREMENTS } from '../assessment/roles'
 import { getInternshipAdvice } from '../assessment/report'
 
 /** 报告末尾附带的求职时间线参考图（置于 public/report-timeline/） */
@@ -66,15 +66,6 @@ function IntensityBar(props: { value0to100: number; fill: string; track?: string
 
 function interestToPercent(score: number): number {
   return Math.round(((score - 18) / (92 - 18)) * 100)
-}
-
-function taskDetailLine(task: string) {
-  return (
-    <li key={task} className="text-sm text-gray-700 leading-relaxed">
-      <span className="font-semibold text-gray-800">{task}</span>
-      <span className="text-gray-600">：{getTaskNote(task)}</span>
-    </li>
-  )
 }
 
 /** 实习经历要求：优先报告内嵌字段，否则按岗位名对齐岗位库.xlsx，最后兼容旧版短句 */
@@ -392,21 +383,14 @@ export function ReportView({ report }: ReportViewProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-semibold text-gray-700 text-sm mb-2">典型任务</h4>
-                  <ul className="space-y-2 list-none m-0 p-0">{role.tasks.map(task => taskDetailLine(task))}</ul>
+                  <ul className="space-y-2 list-none m-0 p-0">
+                    {role.tasks.map((task, idx) => (
+                      <li key={idx} className="text-sm text-gray-600 leading-relaxed">
+                        {task}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-
-                {role.taskDetails && role.taskDetails.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold text-gray-700 text-sm mb-2">任务详解</h4>
-                    <ul className="space-y-2 list-none m-0 p-0">
-                      {role.taskDetails.map((detail, idx) => (
-                        <li key={idx} className="text-xs text-gray-600 leading-relaxed">
-                          {detail}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
 
                 <div>
                   <h4 className="font-semibold text-gray-700 text-sm mb-2">薪酬范围</h4>
