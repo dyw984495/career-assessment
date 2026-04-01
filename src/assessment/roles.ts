@@ -4,6 +4,7 @@
 // ============================================================
 
 import type { Role, InterestScores, PersonalityScores } from '../lib/types'
+import { TASK_DETAILS } from './taskDetails'
 
 // 高实习要求岗位列表（Excel 中明确标注"建议至少 3 段"的岗位）
 const highInternshipRoles = new Set([
@@ -336,6 +337,10 @@ const mkRole = (
   if (!internshipRequirement) {
     throw new Error(`[roles] 缺少实习门槛文案（岗位库.xlsx）：${name}`)
   }
+  const taskDetails = TASK_DETAILS[name]
+  if (!taskDetails) {
+    throw new Error(`[roles] 缺少任务详情：${name}`)
+  }
   return {
     name,
     icon,
@@ -343,6 +348,7 @@ const mkRole = (
     personality,
     desc,
     tasks,
+    taskDetails,
     school,
     skills,
     salary,

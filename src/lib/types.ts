@@ -34,6 +34,7 @@ export interface Role {
   personality: PersonalityScores
   desc: string
   tasks: string[]
+  taskDetails: string[]  // Excel 中的详细任务（分点描述）
   school: string
   skills: string[]
   salary: string[]

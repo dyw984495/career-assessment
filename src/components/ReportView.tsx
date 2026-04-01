@@ -395,6 +395,19 @@ export function ReportView({ report }: ReportViewProps) {
                   <ul className="space-y-2 list-none m-0 p-0">{role.tasks.map(task => taskDetailLine(task))}</ul>
                 </div>
 
+                {role.taskDetails && role.taskDetails.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="font-semibold text-gray-700 text-sm mb-2">任务详解</h4>
+                    <ul className="space-y-2 list-none m-0 p-0">
+                      {role.taskDetails.map((detail, idx) => (
+                        <li key={idx} className="text-xs text-gray-600 leading-relaxed">
+                          {detail}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <div>
                   <h4 className="font-semibold text-gray-700 text-sm mb-2">薪酬范围</h4>
                   <ul className="space-y-1">
